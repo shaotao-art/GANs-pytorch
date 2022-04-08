@@ -66,3 +66,23 @@ class BasicConv(nn.Module):
 
     def forward(self, x):
         return self.block(x)
+
+class SEBlock(nn.Module):
+    """
+    module from Squeeze-and-Excitation Networks (SENet)
+    """
+    def __init__(self, in_dim, num_linear):
+        super(SEBlock, self).__init__()
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        
+        self.fcs = nn.Sequential(
+            nn.Conv2d(in_dim, num_linear, 1, 1, 0, bias=True),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(num_linear, in_dim, 1, 1, 0, bias=True),
+            nn.Sigmoid()
+        )
+
+    def forward(self, x):
+        _ = self.avg_pool(x)
+        _ = self.fcs(_)
+        return _ * x
