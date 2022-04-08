@@ -56,10 +56,10 @@ class BasicConv(nn.Module):
     you can choose use bn or not
     you can choose use relu or leakyrelu
     """
-    def __init__(self, in_channel, out_channel, k_s, s, bn=False, leaky_relu=True) -> None:
+    def __init__(self, in_channel, out_channel, k_s, s, p, bn=False, leaky_relu=True) -> None:
         super(BasicConv, self).__init__()
         self.block = nn.Sequential(
-            nn.Conv2d(in_channel, out_channel, k_s, s, k_s//2),
+            nn.Conv2d(in_channel, out_channel, k_s, s, p),
             nn.Identity() if bn==False else nn.BatchNorm2d(out_channel),
             nn.LeakyReLU(0.2) if leaky_relu==True else nn.ReLU()
         )
