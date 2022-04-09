@@ -49,29 +49,58 @@ def init_weight(m):
 
 
 
+class ResNetBlock(nn.Module):
+    """
+    basic resnet block has structure: input - Conv - bn - relu - conv - bn  + - relu
+                                      |                                     |
+                                      ---------------------------------------
+    you can choose use depthwise conv or not: default not
+    you can choose use bn or not : default not
+    you can choose use relu or leakyrelu : default leakyrelu
+    """
+    def __init__(self, in_channel, k_s, s, p, bn=False, leaky_relu=True, seperable=False) -> None:
+        super(ResNetBlock, self).__init__()
+        self.block = nn.Sequential(
+            nn.Conv2d(in_channel, in_channel, k_s, s, p) if seperable==False else nn.Conv2d(in_channel, in_channel, k_s, s, p, groups=in_channel),
+            nn.Identity() if seperable==False else nn.Conv2d(in_channel, in_channel, 1, 1, 0),
+            nn.Identity() if bn==False else nn.BatchNorm2d(in_channel),
+            nn.LeakyReLU(0.2, inplace=True) if leaky_relu==True else nn.ReLU(inplace=True),
+            nn.Conv2d(in_channel, in_channel, k_s, s, p) if seperable==False else nn.Conv2d(in_channel, in_channel, k_s, s, p, groups=in_channel),
+            nn.Identity() if seperable==False else nn.Conv2d(in_channel, in_channel, 1, 1, 0),
+            nn.Identity() if bn==False else nn.BatchNorm2d(in_channel),
+        )
+        self.act = nn.LeakyReLU(0.2, inplace=True) if leaky_relu==True else nn.ReLU(inplace=True)
 
+    def forward(self, x):
+        return self.act(self.block(x) + x)
 
 
 class BasicConv(nn.Module):
     """
     basic conv block has structure: Conv - bn - relu
-    you can choose use bn or not
-    you can choose use relu or leakyrelu
+    you can choose use depthwise conv or not: default not
+    you can choose use bn or not : default not
+    you can choose use relu or leakyrelu : default leakyrelu
     """
-    def __init__(self, in_channel, out_channel, k_s, s, p, bn=False, leaky_relu=True) -> None:
+    def __init__(self, in_channel, out_channel, k_s, s, p, bn=False, leaky_relu=True, seperable=False) -> None:
         super(BasicConv, self).__init__()
         self.block = nn.Sequential(
-            nn.Conv2d(in_channel, out_channel, k_s, s, p),
+            nn.Conv2d(in_channel, out_channel, k_s, s, p) if seperable==False else nn.Conv2d(in_channel, in_channel, k_s, s, p, groups=in_channel),
+            nn.Identity() if seperable==False else nn.Conv2d(in_channel, out_channel, 1, 1, 0),
             nn.Identity() if bn==False else nn.BatchNorm2d(out_channel),
-            nn.LeakyReLU(0.2) if leaky_relu==True else nn.ReLU()
+            nn.LeakyReLU(0.2, inplace=True) if leaky_relu==True else nn.ReLU(inplace=True)
         )
 
     def forward(self, x):
         return self.block(x)
 
+
 class SEBlock(nn.Module):
     """
     module from Squeeze-and-Excitation Networks (SENet)
+    has structure:  input - global avgpool - linear - relu - linear - sigmoid  x -  
+                    |                                                          |
+                    ------------------------------------------------------------
     """
     def __init__(self, in_dim, num_linear):
         super(SEBlock, self).__init__()
