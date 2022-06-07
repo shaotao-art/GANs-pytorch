@@ -1,26 +1,8 @@
-from turtle import forward
 import numpy as np
 import torch
-from torch import nn, zero_
-import time
+from torch import nn
 
-
-def save_checkpoint(dict, path="model.pth.tar"):
-    """
-    save the model and optim through a dictionary
-     {"model": model.state_dict(), "optim": optim.state_dict()} (*)
-
-    params:
-        data: a dict of the structure (*) storing the model and optim
-
-    return:
-        None
-    """
-    now = time.strftime("%D_%H:%M")
-    print(f"saving checkpoint at {now}, path is '{path}'")
-    torch.save(dict, path)
-    print("saving model... done!")
-
+    
 
 def set_seed(seed):
     """
@@ -78,9 +60,9 @@ class ResNetBlock(nn.Module):
 class BasicConv(nn.Module):
     """
     basic conv block has structure: Conv - bn - relu
-    you can choose use depthwise conv or not: default not
-    you can choose use bn or not : default not
-    you can choose use relu or leakyrelu : default leakyrelu
+    you can choose use depthwise conv or not: default use common conv
+    you can choose use bn or not : default do not use bn
+    you can choose use relu or leakyrelu : default use leakyrelu
     """
     def __init__(self, in_channel, out_channel, k_s, s, p, bn=False, leaky_relu=True, seperable=False) -> None:
         super(BasicConv, self).__init__()
